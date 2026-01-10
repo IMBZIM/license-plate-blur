@@ -7,25 +7,25 @@
 
 An intelligent video processing tool that uses **machine learning** to automatically detect, track and blur license plates in videos while preserving original quality and audio. Features AI-powered detection with manual fallback for maximum reliability.
 
-## ✨ Key Features
+##  Key Features
 
-### 🤖 AI-Powered Detection
+###  AI-Powered Detection
 - **YOLOv8 Integration** - Automatic license plate detection using state-of-the-art machine learning
 - **Smart Fallback** - AI detection with manual selection backup for maximum reliability
 - **Real-time Processing** - Instant detection and confirmation workflow
 
-### 🎯 Advanced Tracking & Blurring
+###  Advanced Tracking & Blurring
 - **Multi-Tracker Support** - MIL, DaSiamRPN, and Nano trackers with intelligent fallback
 - **Robust Motion Tracking** - Handles complex movements, lighting changes, and partial occlusions
 - **Manual Re-sync** - Press 'R' during processing to manually correct tracking
 - **High-Quality Gaussian Blurring** - Professional-grade privacy protection with configurable intensity
 
-### 🎨 User Experience
+###  User Experience
 - **Interactive Selection** - Large canvas interface for precise license plate targeting
 - **Visual Feedback** - Real-time progress display and tracking confirmation
 - **One-Click Processing** - Simple workflow from detection to final output
 
-### 🔧 Professional Output
+###  Professional Output
 - **Audio Preservation** - Automatic FFmpeg integration maintains original audio quality
 - **Full Resolution** - Processes entire videos without quality loss or cutting
 - **Cross-Platform** - Native support for Windows, macOS, and Linux

@@ -3,6 +3,9 @@ import sys
 import os
 import subprocess
 
+def nothing(x):
+    pass
+
 def blur_license_plate(video_path, output_path):
     """
     Main function to blur a license plate in a video using manual selection and tracking.
@@ -25,20 +28,64 @@ def blur_license_plate(video_path, output_path):
     # ============================================================================
     # Create a VideoCapture object to read the video
     cap = cv2.VideoCapture(video_path)
-    
+
     # Verify that the video opened successfully
     if not cap.isOpened():
         print("Error: Could not open video.")
         sys.exit()
-    
-    # Read the very first frame - this will be used for ROI selection
+
+    # Get total number of frames in the video
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    # Read the very first frame - this will be used for scrollbar reference
     ret, frame = cap.read()
     if not ret:
         print("Error: Cannot read video.")
         sys.exit()
-    
+
     # ============================================================================
-    # STEP 3: CREATE ZOOMED-OUT CANVAS FOR EASIER SELECTION
+    # STEP 4: USER SELECTS VIDEO PARTS USING SCROLLBAR
+    # ============================================================================
+    # Create a window for trackbars
+    trackbar_win = "Select Video Parts"
+    cv2.namedWindow(trackbar_win, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(trackbar_win, 400, 200)
+
+    # Create trackbars for start and end frames
+    cv2.createTrackbar("Start Frame", trackbar_win, 0, total_frames - 1, nothing)
+    cv2.createTrackbar("End Frame", trackbar_win, total_frames - 1, total_frames - 1, nothing)
+
+    # Display the first frame for reference
+    cv2.imshow(trackbar_win, cv2.resize(frame, (400, 200)))
+
+    print("\n--- ACTION REQUIRED ---")
+    print("Adjust the trackbars to select the start and end frames.")
+    print("Press ENTER when done.")
+
+    # Wait for user to press ENTER
+    cv2.waitKey(0)
+
+    # Get the selected frame values
+    start_frame = cv2.getTrackbarPos("Start Frame", trackbar_win)
+    end_frame = cv2.getTrackbarPos("End Frame", trackbar_win)
+
+    # Ensure start_frame < end_frame
+    if start_frame >= end_frame:
+        end_frame = start_frame + 1
+        if end_frame >= total_frames:
+            end_frame = total_frames - 1
+
+    cv2.destroyWindow(trackbar_win)
+
+    # Set to start frame for subsequent processing
+    cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
+    ret, frame = cap.read()
+    if not ret:
+        print("Error: Cannot read start frame.")
+        sys.exit()
+
+    # ============================================================================
+    # STEP 5: CREATE ZOOMED-OUT CANVAS FOR EASIER SELECTION
     # ============================================================================
     # Get the original frame dimensions
     h, w = frame.shape[:2]
@@ -61,22 +108,22 @@ def blur_license_plate(video_path, output_path):
     canvas[y_off:y_off+nh, x_off:x_off+nw] = resized_frame
     
     # ============================================================================
-    # STEP 4: USER SELECTS LICENSE PLATE REGION
+    # STEP 5: USER SELECTS LICENSE PLATE REGION
     # ============================================================================
     # Display instructions to the user
     print("\n--- ACTION REQUIRED ---")
     print("1. Draw a box over the plate.")
     print("2. Press ENTER.")
-    
+
     # Create a named window and set its size
     win_name = "Digital Rift - Select Plate"
     cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
     cv2.resizeWindow(win_name, canvas_size, canvas_size)
-    
+
     # Let the user draw a bounding box on the canvas
     bbox_canvas = cv2.selectROI(win_name, canvas, False)
     cv2.destroyWindow(win_name)
-    
+
     # Check if user cancelled the selection (returns all zeros)
     if bbox_canvas == (0,0,0,0):
         print("Selection cancelled.")
@@ -97,7 +144,7 @@ def blur_license_plate(video_path, output_path):
     bbox_original = (real_x, real_y, real_w, real_h)
     
     # ============================================================================
-    # STEP 6: INITIALIZE OBJECT TRACKER
+    # STEP 7: INITIALIZE OBJECT TRACKER
     # ============================================================================
     # Try to use CSRT tracker (more accurate but slower)
     # If not available, fall back to KCF tracker (faster but less accurate)
@@ -105,7 +152,7 @@ def blur_license_plate(video_path, output_path):
         tracker = cv2.TrackerCSRT_create()
     except:
         tracker = cv2.legacy.TrackerKCF_create()
-    
+
     # Initialize the tracker with the first frame and the selected bounding box
     tracker.init(frame, bbox_original)
     
@@ -123,44 +170,50 @@ def blur_license_plate(video_path, output_path):
     out = cv2.VideoWriter(temp_output, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
     
     # ============================================================================
-    # STEP 8: PROCESS ALL FRAMES - TRACK AND BLUR LICENSE PLATE
+    # STEP 10: PROCESS SELECTED FRAMES - TRACK AND BLUR LICENSE PLATE
     # ============================================================================
-    print("\nProcessing frames...")
-    
-    while True:
+    print(f"\nProcessing frames from {start_frame} to {end_frame}...")
+
+    # Set the video position to the start frame
+    cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
+    frame_count = start_frame
+
+    while frame_count <= end_frame:
         # Read the next frame
         ret, frame = cap.read()
         if not ret:  # No more frames, video is finished
             break
-        
+
         # Update the tracker to get the new position of the license plate
         success, box = tracker.update(frame)
-        
+
         if success:  # Tracker successfully found the object
             # Convert tracker coordinates to integers
             tx, ty, tw, th = [int(v) for v in box]
-            
+
             # Ensure coordinates don't go negative (clamp to frame boundaries)
             ty, tx = max(0, ty), max(0, tx)
-            
+
             # Extract the region of interest (the license plate area)
             roi = frame[ty:ty+th, tx:tx+tw]
-            
+
             # Only blur if ROI is valid (not empty)
             if roi.size > 0:
                 # Apply Gaussian blur with large kernel (99x99) and high sigma (30)
                 # This creates a heavy blur effect to obscure the license plate
                 frame[ty:ty+th, tx:tx+tw] = cv2.GaussianBlur(roi, (99, 99), 30)
-        
+
         # Write the processed frame to the output video
         out.write(frame)
-        
+
         # Display a preview of the processing (scaled down for viewing)
         cv2.imshow("Processing...", cv2.resize(frame, (nw, nh)))
-        
+
         # Allow user to quit early by pressing 'q'
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+
+        frame_count += 1
     
     # ============================================================================
     # STEP 9: CLEANUP VIDEO PROCESSING
@@ -173,10 +226,10 @@ def blur_license_plate(video_path, output_path):
     cv2.destroyAllWindows()
     
     # ============================================================================
-    # STEP 10: MERGE AUDIO FROM ORIGINAL VIDEO USING FFMPEG
+    # STEP 13: MERGE AUDIO FROM ORIGINAL VIDEO USING FFMPEG
     # ============================================================================
     print("\nAttempting to merge audio with FFmpeg...")
-    
+
     # Build the FFmpeg command:
     # -i temp_output: Input the silent processed video
     # -i video_path: Input the original video (for audio)
@@ -191,11 +244,11 @@ def blur_license_plate(video_path, output_path):
         '-c:v', 'copy', '-c:a', 'aac', '-map', '0:v:0', '-map', '1:a:0',
         '-shortest', '-y', output_path
     ]
-    
+
     try:
         # Execute the FFmpeg command
         result = subprocess.run(cmd, capture_output=True, text=True)
-        
+
         if result.returncode == 0:  # FFmpeg succeeded
             # Remove the temporary file (no longer needed)
             if os.path.exists(temp_output):
@@ -206,7 +259,7 @@ def blur_license_plate(video_path, output_path):
             print("FFmpeg is installed but ran into an error.")
             print(f"Error details: {result.stderr}")
             print(f"Silent video kept as: {temp_output}")
-            
+
     except FileNotFoundError:  # FFmpeg is not installed
         print("\n--- AUDIO MERGE FAILED ---")
         print("FFmpeg was NOT found on your system.")

@@ -56,16 +56,28 @@ sudo apt install ffmpeg
 
 ### Basic Usage
 
-1. Place your video file in the project directory
-2. Update the filename in `blur_plate.py`:
-```python
-if __name__ == "__main__":
-    blur_license_plate("your_video.mov", "output_blurred.mp4")
+Run the script with your video file:
+```bash
+python blur_plate.py input_video.mov output_blurred.mp4
 ```
 
-3. Run the script:
+### Command Line Options
+
+- `input_video`: Path to your input video file
+- `output_video`: Path where the blurred video will be saved
+- `--no-ml`: Skip machine learning detection, force manual selection
+
+### Examples
+
 ```bash
-python blur_plate.py
+# Basic usage with AI detection
+python blur_plate.py my_video.mov blurred_output.mp4
+
+# Force manual selection (skip AI)
+python blur_plate.py my_video.mov blurred_output.mp4 --no-ml
+
+# Use absolute paths
+python blur_plate.py /path/to/input.mov /path/to/output.mp4
 ```
 
 ### Step-by-Step Process

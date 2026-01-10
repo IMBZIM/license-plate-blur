@@ -4,7 +4,7 @@
 ![Python](https://img.shields.io/badge/python-3.10+-green.svg)
 ![OpenCV](https://img.shields.io/badge/opencv-4.0+-red.svg)
 
-An intelligent video processing tool that automatically detects, tracks, and blurs license plates in high-resolution portrait videos while preserving the original audio quality.
+An intelligent video processing tool that automatically detects, tracks and blurs license plates in high-resolution portrait videos while preserving the original audio quality.
 
 ## Project Features
 

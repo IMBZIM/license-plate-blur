@@ -2,18 +2,34 @@
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.10+-green.svg)
-![OpenCV](https://img.shields.io/badge/opencv-4.0+-red.svg)
+![OpenCV](https://img.shields.io/badge/opencv-4.8+-red.svg)
+![YOLOv8](https://img.shields.io/badge/YOLOv8-AI--Powered-blue.svg)
 
-An intelligent video processing tool that automatically detects, tracks and blurs license plates in high-resolution portrait videos while preserving the original audio quality.
+An intelligent video processing tool that uses **machine learning** to automatically detect, track and blur license plates in videos while preserving original quality and audio. Features AI-powered detection with manual fallback for maximum reliability.
 
-## Project Features
+## ✨ Key Features
 
-- **High-Quality Gaussian Blurring** - Professional-grade privacy protection
-- **Intelligent Motion Tracking** - Uses CSRT/KCF algorithms for accurate plate tracking
-- **Zoom-Out Selection Mode** - Easy-to-use ROI targeting interface
-- **Automatic Audio Merging** - Preserves original audio using FFmpeg
-- **Optimized Performance** - Designed for high-resolution portrait video processing
-- **Cross-Platform** - Works on Windows, macOS, and Linux
+### 🤖 AI-Powered Detection
+- **YOLOv8 Integration** - Automatic license plate detection using state-of-the-art machine learning
+- **Smart Fallback** - AI detection with manual selection backup for maximum reliability
+- **Real-time Processing** - Instant detection and confirmation workflow
+
+### 🎯 Advanced Tracking & Blurring
+- **Multi-Tracker Support** - MIL, DaSiamRPN, and Nano trackers with intelligent fallback
+- **Robust Motion Tracking** - Handles complex movements, lighting changes, and partial occlusions
+- **Manual Re-sync** - Press 'R' during processing to manually correct tracking
+- **High-Quality Gaussian Blurring** - Professional-grade privacy protection with configurable intensity
+
+### 🎨 User Experience
+- **Interactive Selection** - Large canvas interface for precise license plate targeting
+- **Visual Feedback** - Real-time progress display and tracking confirmation
+- **One-Click Processing** - Simple workflow from detection to final output
+
+### 🔧 Professional Output
+- **Audio Preservation** - Automatic FFmpeg integration maintains original audio quality
+- **Full Resolution** - Processes entire videos without quality loss or cutting
+- **Cross-Platform** - Native support for Windows, macOS, and Linux
+- **Batch Ready** - Command-line interface perfect for automation
 
 ## Requirements
 
@@ -31,7 +47,12 @@ cd license-plate-blur
 
 ### 2. Install Python Dependencies
 ```bash
-pip install opencv-contrib-python
+pip install opencv-contrib-python ultralytics numpy
+```
+
+Or install from requirements.txt:
+```bash
+pip install -r requirements.txt
 ```
 
 ### 3. Install FFmpeg
@@ -144,17 +165,21 @@ tracker = cv2.TrackerCSRT_create()
 
 ## Technical Details
 
-- **Tracking Algorithm**: CSRT (Channel and Spatial Reliability Tracker) with KCF fallback
-- **Blur Method**: Gaussian blur with configurable kernel size
-- **Audio Processing**: FFmpeg AAC encoding with stream mapping
-- **Output Format**: MP4 with H.264 video and AAC audio
+- **AI Detection**: YOLOv8 (yolov8n.pt) for automatic license plate detection with fallback to manual selection
+- **Tracking Algorithms**: Multiple tracker support (MIL, DaSiamRPN, Nano) with intelligent fallback system
+- **Motion Tracking**: Robust handling of complex movements, lighting changes, and partial occlusions
+- **Blur Method**: Configurable Gaussian blur with kernel size (51, 51) and sigma (15) for optimal privacy
+- **Audio Processing**: FFmpeg stream copying preserves original audio quality and sync
+- **Output Format**: MP4 with H.264 video codec and AAC audio
+- **Performance**: Processes full videos at original resolution without quality loss
 
 ## Limitations
 
-- Requires manual selection of the initial license plate position
-- Performance depends on video quality and lighting conditions
-- May lose tracking with extreme motion or occlusion
-- Best results with clear, well-lit footage
+- **AI Detection**: May occasionally fail on obscured, angled, or very small license plates
+- **Manual Fallback**: Available when AI detection is insufficient
+- **Tracking Performance**: Depends on video quality, lighting conditions, and plate visibility
+- **Motion Challenges**: May lose tracking with extreme motion, severe occlusion, or rapid lighting changes
+- **Optimal Results**: Best performance with clear, well-lit footage and visible license plates
 
 ## Contributing
 
